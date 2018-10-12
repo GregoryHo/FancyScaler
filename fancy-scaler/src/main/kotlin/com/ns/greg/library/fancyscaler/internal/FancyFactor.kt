@@ -104,12 +104,15 @@ internal class FancyFactor(
       return scaleFactor.getCurrentValue() > scaleFactor.getFitValue()
     }
 
-    /*fun transMask(trans: Float): Float {
+    fun transMask(trans: Float): Float {
       return when {
         trans <= minMask -> trans
         trans >= maxMask -> trans * -1
         else -> 0f
       }
-    }*/
+    }
+
+    fun applyFocusTrans(focus: Float) {
+    }
   }
 }

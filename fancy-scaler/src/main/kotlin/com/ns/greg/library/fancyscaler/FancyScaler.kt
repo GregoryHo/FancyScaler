@@ -82,7 +82,7 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
         processing = scaleGestureDetector.onTouchEvent(event)
         /* pass to the normal gesture when not scaling */
         if (!scaleGestureDetector.isInProgress) {
-          processing = gestureDetector.onTouchEvent(event) || processing
+          processing = gestureDetector.onTouchEvent(event) or processing
         }
       }
 
@@ -124,7 +124,7 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
       matrix.postTranslate(
           fancyFactorX.transFactor.current, fancyFactorY.transFactor.current
       )
-      // apply to view
+      /* apply to view */
       view.post {
         if (view is TextureView) {
           view.setTransform(matrix)
@@ -210,10 +210,8 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
       with(transFactor) {
         updateMinTrans()
         applyCentralTrans()
-        // FIXME: considering focus to translate view
         /*if (isExceedFit()) {
-          val trans = current
-          applyTrans(trans)
+          applyFocusTrans(focus)
         } else {
           applyCentralTrans()
         }*/

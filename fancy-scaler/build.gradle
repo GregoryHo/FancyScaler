@@ -2,14 +2,14 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+version = "1.0.1"
 android {
   compileSdkVersion buildVersions.compileSdk
   defaultConfig {
     minSdkVersion buildVersions.minSdk
     targetSdkVersion buildVersions.targetSdk
     versionCode 1
-    versionName "1.0"
-
+    versionName version
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
   }
   buildTypes {
@@ -31,9 +31,11 @@ android {
 
 dependencies {
   implementation fileTree(dir: 'libs', include: ['*.jar'])
-  implementation deps.kotlin.stdLib
+  implementation deps.kotlin.stdLib.jdk8
   implementation deps.androidSupport.appCompat
   testImplementation 'junit:junit:4.12'
   androidTestImplementation 'com.android.support.test:runner:1.0.2'
   androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
+
+apply from: "$rootDir/bintray.gradle"

@@ -31,7 +31,7 @@ android {
 
 dependencies {
   implementation fileTree(dir: 'libs', include: ['*.jar'])
-  implementation deps.kotlin.stdLib
+  implementation deps.kotlin.stdLib.jdk8
   implementation deps.androidSupport.appCompat
   implementation deps.androidSupport.constraint
   implementation project(path: ':fancy-scaler')
