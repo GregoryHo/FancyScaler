@@ -3,6 +3,8 @@ package com.ns.greg.library.fancyscaler
 import android.annotation.SuppressLint
 import android.graphics.Matrix
 import android.support.v4.view.GestureDetectorCompat
+import android.support.v4.view.MotionEventCompat
+import android.text.method.Touch.onTouchEvent
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -12,9 +14,11 @@ import android.view.View
 import android.view.View.OnLayoutChangeListener
 import android.view.View.OnTouchListener
 import android.widget.ImageView
+import com.ns.greg.library.fancyscaler.FancyScaler.Companion.DEFAULT_SCROLL_FACTOR
 import com.ns.greg.library.fancyscaler.internal.FancyFactor.TransFactor
 import com.ns.greg.library.fancyscaler.internal.FancySize
 import com.ns.greg.library.fancyscaler.internal.FrameSize
+import java.lang.Compiler.enable
 import java.lang.ref.WeakReference
 import kotlin.LazyThreadSafetyMode.NONE
 
@@ -26,7 +30,7 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
 
   companion object {
 
-    const val DEFAULT_SCROLL_FACTOR = 2.5f
+    const val DEFAULT_SCROLL_FACTOR = 1.5f
   }
 
   private val scaleGestureDetector: ScaleGestureDetector by lazy(NONE) {
@@ -47,6 +51,7 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
   private val matrixValues = FloatArray(9)
   private lateinit var frameSize: FrameSize
   private lateinit var sourceSize: FancySize
+  private var scaleOnce = false
 
   init {
     if (view !is TextureView && view !is ImageView) {
@@ -73,21 +78,28 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onTouch(
-    v: View?,
-    event: MotionEvent?
+    v: View,
+    event: MotionEvent
   ): Boolean {
     var processing = false
-    return v?.run {
-      if (::frameSize.isInitialized && ::sourceSize.isInitialized) {
-        processing = scaleGestureDetector.onTouchEvent(event)
-        /* pass to the normal gesture when not scaling */
-        if (!scaleGestureDetector.isInProgress) {
+    if (::frameSize.isInitialized && ::sourceSize.isInitialized) {
+      /* reset scale once to false when action down */
+      if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+        scaleOnce = false
+      }
+      /* let scale gesture detector process first */
+      processing = scaleGestureDetector.onTouchEvent(event)
+      /* pass to the normal gesture only when not scale once */
+      if (!scaleOnce) {
+        /* check if the scale gesture detector is process or not */
+        scaleOnce = scaleGestureDetector.isInProgress
+        if (!scaleOnce) {
           processing = gestureDetector.onTouchEvent(event) or processing
         }
       }
+    }
 
-      processing || onTouchEvent(event)
-    } ?: processing
+    return processing or v.onTouchEvent(event)
   }
 
   fun enable() {
@@ -170,14 +182,10 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
           val scaleX = matrixValues[Matrix.MSCALE_X]
           val scaleY = matrixValues[Matrix.MSCALE_Y]
           zoom(sourceSize, scaleX, ratioX, scaleY, ratioY)
-          /* get new scale x/y after zoomed */
-          val newScaleX = sourceSize.fancyFactorX.scaleFactor.current
-          val newScaleY = sourceSize.fancyFactorY.scaleFactor.current
-          /* get current translate x/y */
-          val transX = matrixValues[Matrix.MTRANS_X]
-          val transY = matrixValues[Matrix.MTRANS_Y]
-          translate(sourceSize.fancyFactorX.transFactor, transX, beginFocusX, scaleX, newScaleX)
-          translate(sourceSize.fancyFactorY.transFactor, transY, beginFocusY, scaleY, newScaleY)
+          translate(
+              sourceSize.fancyFactorX.transFactor, beginFocusX, sourceSize.fancyFactorY.transFactor,
+              beginFocusY
+          )
           updateMatrix()
         }
       }
@@ -201,20 +209,18 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
     }
 
     private fun translate(
-      transFactor: TransFactor,
-      current: Float,
-      focus: Float,
-      scale: Float,
-      newScale: Float
+      transFactorX: TransFactor,
+      focusX: Float,
+      transFactorY: TransFactor,
+      focusY: Float
     ) {
-      with(transFactor) {
+      with(transFactorX) {
         updateMinTrans()
-        applyCentralTrans()
-        /*if (isExceedFit()) {
-          applyFocusTrans(focus)
-        } else {
-          applyCentralTrans()
-        }*/
+        applyFocusTrans(focusX)
+      }
+      with(transFactorY) {
+        updateMinTrans()
+        applyFocusTrans(focusY)
       }
     }
   }
@@ -240,6 +246,7 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
     }
 
     override fun onDoubleTap(e: MotionEvent?): Boolean {
+      doubleTap()
       return true
     }
 
@@ -251,18 +258,20 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
         matrix.getValues(matrixValues)
         var dragging = false
         with(sourceSize) {
-          dragging = fancyFactorX.transFactor.isExceedFit()
+          val exceedX = fancyFactorX.transFactor.isExceedFit()
           /* drag x */
-          if (dragging) {
+          if (exceedX) {
             val transX = matrixValues[Matrix.MTRANS_X] - distanceX
             sourceSize.fancyFactorX.transFactor.applyTrans(transX)
           }
           /* drag y */
-          dragging = fancyFactorY.transFactor.isExceedFit()
-          if (dragging) {
+          val exceedY = fancyFactorY.transFactor.isExceedFit()
+          if (exceedY) {
             val transY = matrixValues[Matrix.MTRANS_Y] - distanceY
             sourceSize.fancyFactorY.transFactor.applyTrans(transY)
           }
+
+          dragging = exceedX or exceedY
         }
 
         if (dragging) {
@@ -271,7 +280,7 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
       }
     }
 
-    fun doubleClick() {
+    fun doubleTap() {
       // TODO: should implement this
     }
   }

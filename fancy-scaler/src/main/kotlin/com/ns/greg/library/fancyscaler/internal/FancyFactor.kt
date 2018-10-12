@@ -89,7 +89,12 @@ internal class FancyFactor(
     }
 
     fun applyCentralTrans() {
-      current = min / 2
+      applyTrans(min / 2)
+    }
+
+    fun applyFocusTrans(focus: Float) {
+      val ratio = focus / src
+      applyTrans(min * ratio)
     }
 
     fun applyTrans(trans: Float) {
@@ -110,9 +115,6 @@ internal class FancyFactor(
         trans >= maxMask -> trans * -1
         else -> 0f
       }
-    }
-
-    fun applyFocusTrans(focus: Float) {
     }
   }
 }
