@@ -57,7 +57,7 @@ internal class FancyFactor(
     }
   }
 
-  data class TransFactor(
+  class TransFactor(
     val src: Int,
     private val scaleFactor: ScaleFactor
   ) {
