@@ -15,9 +15,9 @@ internal class FancyFactor(
     matchParent: Boolean
   ) {
 
-    private val fit = dst.toFloat() / src.toFloat()
-    private val min = if (matchParent) fit else 1f
-    private val max = fit * 4
+    val fit = dst.toFloat() / src.toFloat()
+    val min = if (matchParent) fit else 1f
+    val max = fit * 4
     var current = min
 
     override fun toString(): String {
@@ -44,15 +44,15 @@ internal class FancyFactor(
       }
     }
 
-    fun getCurrentValue(): Float {
+    fun getCurrentFrame(): Float {
       return src * current
     }
 
-    fun getFitValue(): Float {
+    fun getFitFrame(): Float {
       return src * fit
     }
 
-    fun getMaxValue(): Float {
+    fun getMaxFrame(): Float {
       return src * max
     }
   }
@@ -63,7 +63,7 @@ internal class FancyFactor(
   ) {
 
     /**
-     * Right side edge which affected by [ScaleFactor.getCurrentValue],
+     * Right side edge which affected by [ScaleFactor.getCurrentFrame],
      * you can see [updateMinTrans].
      */
     var min = 0f
@@ -81,11 +81,11 @@ internal class FancyFactor(
     }
 
     override fun toString(): String {
-      return "src: $src, dst: ${scaleFactor.getCurrentValue()}"
+      return "src: $src, dst: ${scaleFactor.getCurrentFrame()}"
     }
 
     fun updateMinTrans() {
-      min = src - scaleFactor.getCurrentValue()
+      min = src - scaleFactor.getCurrentFrame()
     }
 
     fun applyCentralTrans() {
@@ -106,15 +106,7 @@ internal class FancyFactor(
     }
 
     fun isExceedFit(): Boolean {
-      return scaleFactor.getCurrentValue() > scaleFactor.getFitValue()
-    }
-
-    fun transMask(trans: Float): Float {
-      return when {
-        trans <= minMask -> trans
-        trans >= maxMask -> trans * -1
-        else -> 0f
-      }
+      return scaleFactor.getCurrentFrame() > scaleFactor.getFitFrame()
     }
   }
 }

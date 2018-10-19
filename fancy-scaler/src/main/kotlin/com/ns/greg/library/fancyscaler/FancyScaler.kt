@@ -3,8 +3,6 @@ package com.ns.greg.library.fancyscaler
 import android.annotation.SuppressLint
 import android.graphics.Matrix
 import android.support.v4.view.GestureDetectorCompat
-import android.support.v4.view.MotionEventCompat
-import android.text.method.Touch.onTouchEvent
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -14,11 +12,9 @@ import android.view.View
 import android.view.View.OnLayoutChangeListener
 import android.view.View.OnTouchListener
 import android.widget.ImageView
-import com.ns.greg.library.fancyscaler.FancyScaler.Companion.DEFAULT_SCROLL_FACTOR
 import com.ns.greg.library.fancyscaler.internal.FancyFactor.TransFactor
 import com.ns.greg.library.fancyscaler.internal.FancySize
 import com.ns.greg.library.fancyscaler.internal.FrameSize
-import java.lang.Compiler.enable
 import java.lang.ref.WeakReference
 import kotlin.LazyThreadSafetyMode.NONE
 
@@ -102,6 +98,10 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
     return processing or v.onTouchEvent(event)
   }
 
+  /*--------------------------------
+   * Public functions
+   *-------------------------------*/
+
   fun enable() {
     view.addOnLayoutChangeListener(this)
     view.setOnTouchListener(this)
@@ -121,6 +121,10 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
     sourceSize = FancySize(width, height, widthFitFrame, heightFitFrame)
     calculate()
   }
+
+  /*--------------------------------
+   * Private functions
+   *-------------------------------*/
 
   private fun calculate() {
     if (::frameSize.isInitialized && ::sourceSize.isInitialized) {
@@ -181,47 +185,30 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
           /* get current scale x/y */
           val scaleX = matrixValues[Matrix.MSCALE_X]
           val scaleY = matrixValues[Matrix.MSCALE_Y]
-          zoom(sourceSize, scaleX, ratioX, scaleY, ratioY)
-          translate(
-              sourceSize.fancyFactorX.transFactor, beginFocusX, sourceSize.fancyFactorY.transFactor,
-              beginFocusY
-          )
+          /* processing x */
+          with(sourceSize.fancyFactorX) {
+            /* scale x with new scale */
+            scaleFactor.applyScale(scaleX * ratioX)
+            /* sync with new scale */
+            transFactor.updateMinTrans()
+            /* translate x to focus point */
+            transFactor.applyFocusTrans(focusX)
+          }
+          /* processing y */
+          with(sourceSize.fancyFactorY) {
+            /* scale y with new scale*/
+            sourceSize.fancyFactorY.scaleFactor.applyScale(scaleY * ratioY)
+            /* sync with new scale */
+            transFactor.updateMinTrans()
+            /* translate y to focus point */
+            transFactor.applyFocusTrans(focusY)
+          }
+
           updateMatrix()
         }
       }
 
       return true
-    }
-
-    private fun zoom(
-      sourceSize: FancySize,
-      scaleX: Float,
-      ratioX: Float,
-      scaleY: Float,
-      ratioY: Float
-    ) {
-      with(sourceSize) {
-        /* zoom width */
-        fancyFactorX.scaleFactor.applyScale(scaleX * ratioX)
-        /* zoom height */
-        fancyFactorY.scaleFactor.applyScale(scaleY * ratioY)
-      }
-    }
-
-    private fun translate(
-      transFactorX: TransFactor,
-      focusX: Float,
-      transFactorY: TransFactor,
-      focusY: Float
-    ) {
-      with(transFactorX) {
-        updateMinTrans()
-        applyFocusTrans(focusX)
-      }
-      with(transFactorY) {
-        updateMinTrans()
-        applyFocusTrans(focusY)
-      }
     }
   }
 
@@ -246,7 +233,10 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
     }
 
     override fun onDoubleTap(e: MotionEvent?): Boolean {
-      doubleTap()
+      e?.run {
+        doubleTap(e)
+      }
+
       return true
     }
 
@@ -280,8 +270,41 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
       }
     }
 
-    fun doubleTap() {
-      // TODO: should implement this
+    fun doubleTap(touchPoint: MotionEvent) {
+      /* processing x */
+      with(scaler.sourceSize.fancyFactorX) {
+        /* scale x to min or max */
+        with(scaleFactor) {
+          if (current < max) {
+            applyMaxScale()
+          } else {
+            applyMinScale()
+          }
+        }
+        /* translate x to touch point */
+        with(transFactor) {
+          updateMinTrans()
+          applyFocusTrans(touchPoint.x)
+        }
+      }
+      /* processing y */
+      with(scaler.sourceSize.fancyFactorY) {
+        /* scale y to min or max */
+        with(scaleFactor) {
+          if (current < max) {
+            applyMaxScale()
+          } else {
+            applyMinScale()
+          }
+        }
+        /* translate y to touch point */
+        with(transFactor) {
+          updateMinTrans()
+          applyFocusTrans(touchPoint.y)
+        }
+      }
+
+      scaler.updateMatrix()
     }
   }
 }
