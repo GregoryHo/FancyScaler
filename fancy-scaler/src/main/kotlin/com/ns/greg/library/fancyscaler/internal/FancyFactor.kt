@@ -63,13 +63,13 @@ internal class FancyFactor(
   ) {
 
     /**
-     * Right side edge which affected by [ScaleFactor.getCurrentFrame],
+     * right/bottom side edge which affected by [ScaleFactor.getCurrentFrame],
      * you can see [updateMinTrans].
      */
     var min = 0f
     /* current trans */
     var current = 0f
-    /* left side edge always be zero */
+    /* left/top side edge always be zero */
     val max = 0f
     /* translate mask region */
     private val minMask = src / 3
@@ -98,10 +98,15 @@ internal class FancyFactor(
     }
 
     fun applyTrans(trans: Float) {
-      current = when {
-        trans <= min -> min
-        trans >= max -> max
-        else -> trans
+      /* means the src of scale factor less than src of trans factor frame */
+      current = if (min > 0) {
+        trans
+      } else {
+        when {
+          trans <= min -> min
+          trans >= max -> max
+          else -> trans
+        }
       }
     }
 

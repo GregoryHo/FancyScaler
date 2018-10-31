@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.ImageView
 import com.ns.greg.library.fancyscaler.FancyScaler
 
@@ -22,9 +23,13 @@ class DemoActivity : AppCompatActivity() {
     /* define display view */
     displayView = findViewById(R.id.display_iv)
     /* decode source as bitmap */
-    source = BitmapFactory.decodeResource(resources, R.drawable.ic_touka)
+    source = BitmapFactory.decodeResource(resources, R.drawable.ic_android)
     displayView.setImageBitmap(source)
     val scaler = FancyScaler(displayView)
-    scaler.setSourceSize(source.width, source.height, true, true)
+    scaler.setSourceSize(source.width, getHeight16x9(source.width))
+  }
+
+  private fun getHeight16x9(width: Int): Int {
+    return (width.toFloat() / 16f * 9f).toInt()
   }
 }

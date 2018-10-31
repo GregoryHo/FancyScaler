@@ -129,6 +129,17 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
   private fun calculate() {
     if (::frameSize.isInitialized && ::sourceSize.isInitialized) {
       sourceSize.applyFrame(frameSize)
+      /* x */
+      with(sourceSize.fancyFactorX) {
+        transFactor.updateMinTrans()
+        transFactor.applyCentralTrans()
+      }
+      /* y */
+      with(sourceSize.fancyFactorY) {
+        transFactor.updateMinTrans()
+        transFactor.applyCentralTrans()
+      }
+
       updateMatrix()
     }
   }
@@ -192,7 +203,11 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
             /* sync with new scale */
             transFactor.updateMinTrans()
             /* translate x to focus point */
-            transFactor.applyFocusTrans(focusX)
+            if (transFactor.isExceedFit()) {
+              transFactor.applyFocusTrans(focusX)
+            } else {
+              transFactor.applyCentralTrans()
+            }
           }
           /* processing y */
           with(sourceSize.fancyFactorY) {
@@ -201,7 +216,11 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
             /* sync with new scale */
             transFactor.updateMinTrans()
             /* translate y to focus point */
-            transFactor.applyFocusTrans(focusY)
+            if (transFactor.isExceedFit()) {
+              transFactor.applyFocusTrans(focusY)
+            } else {
+              transFactor.applyCentralTrans()
+            }
           }
 
           updateMatrix()
