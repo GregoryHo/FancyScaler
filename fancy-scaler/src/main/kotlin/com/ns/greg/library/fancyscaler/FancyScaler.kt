@@ -303,7 +303,11 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
         /* translate x to touch point */
         with(transFactor) {
           updateMinTrans()
-          applyFocusTrans(touchPoint.x)
+          if (isExceedFit()) {
+            applyFocusTrans(touchPoint.x)
+          } else {
+            applyCentralTrans()
+          }
         }
       }
       /* processing y */
@@ -319,7 +323,11 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
         /* translate y to touch point */
         with(transFactor) {
           updateMinTrans()
-          applyFocusTrans(touchPoint.y)
+          if (isExceedFit()) {
+            applyFocusTrans(touchPoint.y)
+          } else {
+            applyCentralTrans()
+          }
         }
       }
 
