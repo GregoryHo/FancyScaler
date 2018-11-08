@@ -2,6 +2,7 @@ package com.ns.greg.library.fancyscaler.internal
 
 import com.ns.greg.library.fancyscaler.ResolutionRatio
 import com.ns.greg.library.fancyscaler.ResolutionRatio.RATIO_FOUR_X_THREE
+import com.ns.greg.library.fancyscaler.ResolutionRatio.RATIO_MATCH_PARENT
 import com.ns.greg.library.fancyscaler.ResolutionRatio.RATIO_ONE_X_ONE
 import com.ns.greg.library.fancyscaler.ResolutionRatio.RATIO_SIXTEEN_X_NINE
 import com.ns.greg.library.fancyscaler.internal.FancyFactor.ScaleFactor
@@ -39,6 +40,9 @@ internal class FancySize(
   ): FrameSize {
     return ratio?.run {
       when (this) {
+        RATIO_MATCH_PARENT -> {
+          size
+        }
         RATIO_ONE_X_ONE -> {
           val min = Math.min(size.width, size.height)
           FrameSize(min, min)
