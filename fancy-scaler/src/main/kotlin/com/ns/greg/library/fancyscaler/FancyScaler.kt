@@ -12,7 +12,6 @@ import android.view.View
 import android.view.View.OnLayoutChangeListener
 import android.view.View.OnTouchListener
 import android.widget.ImageView
-import com.ns.greg.library.fancyscaler.internal.FancyFactor.TransFactor
 import com.ns.greg.library.fancyscaler.internal.FancySize
 import com.ns.greg.library.fancyscaler.internal.FrameSize
 import java.lang.ref.WeakReference
@@ -112,13 +111,12 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
     view.setOnTouchListener(null)
   }
 
-  fun setSourceSize(
-    width: Int,
-    height: Int,
-    widthFitFrame: Boolean = false,
-    heightFitFrame: Boolean = false
+  fun scaleAs(
+    srcWidth: Int,
+    srcHeight: Int,
+    ratio: ResolutionRatio? = null
   ) {
-    sourceSize = FancySize(width, height, widthFitFrame, heightFitFrame)
+    sourceSize = FancySize(srcWidth, srcHeight, ratio)
     calculate()
   }
 
@@ -163,8 +161,8 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
   }
 
   /*--------------------------------
-  * SCALE GESTURE LISTENER
-  *-------------------------------*/
+   * SimpleOnScaleGestureListener
+   *-------------------------------*/
 
   private class SimpleScaleGestureListener(reference: FancyScaler) :
       SimpleOnScaleGestureListener() {
@@ -232,7 +230,7 @@ class FancyScaler(private val view: View) : OnLayoutChangeListener, OnTouchListe
   }
 
   /*--------------------------------
- * BASIC GESTURE LISTENER
+ * SimpleOnGestureListener
  *-------------------------------*/
 
   private class SimpleGestureListener(reference: FancyScaler) : SimpleOnGestureListener() {

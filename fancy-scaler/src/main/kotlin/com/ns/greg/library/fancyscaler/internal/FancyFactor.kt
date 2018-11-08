@@ -11,13 +11,13 @@ internal class FancyFactor(
 
   class ScaleFactor(
     val src: Int,
-    dst: Int,
-    matchParent: Boolean
+    ratioSrc: Int,
+    parent: Int
   ) {
 
-    val fit = dst.toFloat() / src.toFloat()
-    val min = if (matchParent) fit else 1f
-    val max = fit * 4
+    val fit = parent.toFloat() / src.toFloat()
+    val min = ratioSrc / src.toFloat()
+    val max = fit * 4f
     var current = min
 
     override fun toString(): String {
@@ -58,7 +58,7 @@ internal class FancyFactor(
   }
 
   class TransFactor(
-    val src: Int,
+    val parent: Int,
     private val scaleFactor: ScaleFactor
   ) {
 
@@ -71,9 +71,6 @@ internal class FancyFactor(
     var current = 0f
     /* left/top side edge always be zero */
     val max = 0f
-    /* translate mask region */
-    private val minMask = src / 3
-    private val maxMask = src - minMask
 
     init {
       updateMinTrans()
@@ -81,11 +78,11 @@ internal class FancyFactor(
     }
 
     override fun toString(): String {
-      return "src: $src, dst: ${scaleFactor.getCurrentFrame()}"
+      return "src: $parent, dst: ${scaleFactor.getCurrentFrame()}"
     }
 
     fun updateMinTrans() {
-      min = src - scaleFactor.getCurrentFrame()
+      min = parent - scaleFactor.getCurrentFrame()
     }
 
     fun applyCentralTrans() {
@@ -93,7 +90,7 @@ internal class FancyFactor(
     }
 
     fun applyFocusTrans(focus: Float) {
-      val ratio = focus / src
+      val ratio = focus / parent
       applyTrans(min * ratio)
     }
 

@@ -1,5 +1,9 @@
 package com.ns.greg.library.fancyscaler.internal
 
+import com.ns.greg.library.fancyscaler.ResolutionRatio
+import com.ns.greg.library.fancyscaler.ResolutionRatio.RATIO_FOUR_X_THREE
+import com.ns.greg.library.fancyscaler.ResolutionRatio.RATIO_ONE_X_ONE
+import com.ns.greg.library.fancyscaler.ResolutionRatio.RATIO_SIXTEEN_X_NINE
 import com.ns.greg.library.fancyscaler.internal.FancyFactor.ScaleFactor
 import com.ns.greg.library.fancyscaler.internal.FancyFactor.TransFactor
 
@@ -8,25 +12,43 @@ import com.ns.greg.library.fancyscaler.internal.FancyFactor.TransFactor
  * @since 2018/8/28
  */
 internal class FancySize(
-  width: Int,
-  height: Int,
-  private val widthFitFrame: Boolean,
-  private val heightFitFrame: Boolean
-) : FrameSize(width, height) {
+  srcWidth: Int,
+  srcHeight: Int,
+  private val ratio: ResolutionRatio?
+
+) : FrameSize(srcWidth, srcHeight) {
 
   lateinit var fancyFactorX: FancyFactor
   lateinit var fancyFactorY: FancyFactor
 
-  fun applyFrame(size: FrameSize) {
+  fun applyFrame(
+    size: FrameSize
+  ) {
+    val ratioSize = getRatioSize(size, ratio)
     /* defined fancy factor x */
-    with(size.width) {
-      val scaleFactorX = ScaleFactor(width, this, widthFitFrame)
-      fancyFactorX = FancyFactor(scaleFactorX, TransFactor(this, scaleFactorX))
-    }
+    val scaleFactorX = ScaleFactor(width, ratioSize.width, size.width)
+    fancyFactorX = FancyFactor(scaleFactorX, TransFactor(size.width, scaleFactorX))
     /* defined fancy factor y */
-    with(size.height) {
-      val scaleFactorY = ScaleFactor(height, this, heightFitFrame)
-      fancyFactorY = FancyFactor(scaleFactorY, TransFactor(this, scaleFactorY))
+    val scaleFactorY = ScaleFactor(height, ratioSize.height, size.height)
+    fancyFactorY = FancyFactor(scaleFactorY, TransFactor(size.height, scaleFactorY))
+  }
+
+  private fun getRatioSize(
+    size: FrameSize,
+    ratio: ResolutionRatio?
+  ): FrameSize {
+    return ratio?.run {
+      when (this) {
+        RATIO_ONE_X_ONE -> {
+          val min = Math.min(size.width, size.height)
+          FrameSize(min, min)
+        }
+        RATIO_FOUR_X_THREE, RATIO_SIXTEEN_X_NINE -> {
+          FrameSize(size.width, getHeight(size.width.toFloat()))
+        }
+      }
+    } ?: run {
+      this
     }
   }
 }
