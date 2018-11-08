@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.ImageView
 import com.ns.greg.library.fancyscaler.FancyScaler
+import com.ns.greg.library.fancyscaler.ResolutionRatio.RATIO_MATCH_PARENT
 
 /**
  * @author gregho
@@ -25,6 +26,6 @@ class DemoActivity : AppCompatActivity() {
     source = BitmapFactory.decodeResource(resources, R.drawable.ic_android)
     displayView.setImageBitmap(source)
     val scaler = FancyScaler(displayView)
-    scaler.scaleAs(source.width, source.height)
+    scaler.scaleAs(source.width, source.height, RATIO_MATCH_PARENT)
   }
 }
